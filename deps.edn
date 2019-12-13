@@ -6,8 +6,9 @@
         ring/ring-jetty-adapter {:mvn/version "1.7.1"
                                  :exclusions [org.eclipse.jetty/jetty-server]}
         org.eclipse.jetty/jetty-server {:mvn/version "9.4.18.v20190429"}
-        
-        metosin/jsonista {:mvn/version "0.2.2"}}
+
+        metosin/jsonista {:mvn/version "0.2.2"}
+        ring {:mvn/version "1.8.0"}}
  :aliases
  {:dev {:extra-deps {com.bhauman/rebel-readline {:mvn/version "0.1.4"}
                      nrepl {:mvn/version "0.4.0"}
