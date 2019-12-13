@@ -3,10 +3,7 @@
         integrant {:mvn/version "0.8.0-alpha2"}
         io.aviso/logging {:mvn/version "0.3.1"}
         org.slf4j/slf4j-simple {:mvn/version "1.7.25"}
-        ring/ring-jetty-adapter {:mvn/version "1.7.1"
-                                 :exclusions [org.eclipse.jetty/jetty-server]}
-        org.eclipse.jetty/jetty-server {:mvn/version "9.4.18.v20190429"}
-
+        http-kit {:mvn/version "2.4.0-alpha4"}
         metosin/jsonista {:mvn/version "0.2.2"}
         ring {:mvn/version "1.8.0"}}
  :aliases

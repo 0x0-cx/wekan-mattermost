@@ -1,20 +1,36 @@
 (ns wekan-mattermost.core
-  (:require [ring.adapter.jetty :refer [run-jetty]]
+  (:require [org.httpkit.server :refer [run-server]]
+            [org.httpkit.client :as http]
             [ring.util.response :refer [response]]
             [jsonista.core :as j]))
 
 ;; TODO
 (def mapper (j/object-mapper {:encode-key-fn name :decode-key-fn keyword}))
 
-(defn app [req]
-  (println (pr-str req))
+;; main logic
+(defn wekan->mattermost [in]
+  (let [text (get in "text")]
+    {:text text}))
+
+(def client-http-options {:timeout 1000 :headers {"Content-Type" "application/json"}})
+
+(defn http-client [out-body url]
+  @(http/post url (assoc client-http-options
+                         :body (j/write-value-as-string out-body))))
+
+(defn app [{:keys [url]} req]
   (if (-> req :request-method (= :post))
-    (response (j/write-value-as-string (-> req :body j/read-value)))
+    (let [out-resp (-> req :body j/read-value wekan->mattermost (http-client url))]
+      (println {:req (pr-str req) :out-resp out-resp})
+      (if (-> out-resp :status (= 200))
+        (response "ok" #_())
+        (response (str "Webhook failed with: " out-resp))))
     (response "Please send POST with wekan wenhook: https://github.com/wekan/wekan/wiki/Webhook-data")))
 
-(defn start-http-server [{:keys [port]}]
-  (let [port (Integer. (or (System/getenv "port") port))]
-    (run-jetty #'app {:port port :join? false})))
+(defn start-http-server [{:keys [port url]}]
+  (let [port (Integer. (or (System/getenv "port") port))
+        url (or (System/getenv "url") url (throw (Exception. "specify URL env")))]
+    (run-server (partial app {:url url}) {:port port :join? false})))
 
 (defn -main [& args]
-  (start-http-server {:port 3000}))
+  (start-http-server {}))
