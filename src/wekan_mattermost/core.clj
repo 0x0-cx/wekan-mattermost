@@ -2,16 +2,31 @@
   (:require [org.httpkit.server :refer [run-server]]
             [org.httpkit.client :as http]
             [ring.util.response :refer [response]]
-            [jsonista.core :as j])
+            [jsonista.core :as j]
+            [clojure.string :as string])
   (:gen-class))
 
 ;; TODO
 (def mapper (j/object-mapper {:encode-key-fn name :decode-key-fn keyword}))
 
-;; main logic
-(defn wekan->mattermost [in]
-  (let [text (get in "text")]
-    {:text text}))
+(defn add-refer-to-card-name
+  "add reference to card name"
+  [text card]
+  (def reference (subs text (-> (string/last-index-of text "\n") inc)))
+  (string/replace-first text card (str "[" card "](" reference ")")))
+
+(defn clear-message
+  "delete reference from message"
+  [text]
+  (def reference (subs text (-> (string/last-index-of text "\n") inc)))
+  (string/replace text (str "\n" reference) ""))
+
+(defn wekan->mattermost
+  "creates message"
+  [in]
+  (let [text (get in "text")
+        card (get in "card")]
+    {:text (-> text (add-refer-to-card-name card) clear-message)}))
 
 (def client-http-options {:timeout 1000 :headers {"Content-Type" "application/json"}})
 
@@ -22,9 +37,9 @@
 (defn app [{:keys [url]} req]
   (if (-> req :request-method (= :post))
     (let [out-resp (-> req :body j/read-value wekan->mattermost (http-client url))]
-      ; (println {:req (pr-str req) :out-resp out-resp})
+    ; (println {:req (pr-str req) :out-resp out-resp}) ; debug full request
       (if (-> out-resp :status (= 200))
-        (response "ok" #_())
+        (response "ok")
         (response (str "Webhook failed with: " out-resp))))
     (response "Please send POST with wekan wenhook: https://github.com/wekan/wekan/wiki/Webhook-data")))
 
