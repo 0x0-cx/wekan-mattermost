@@ -38,13 +38,13 @@
     (let [out-resp (-> req :body j/read-value wekan->mattermost (http-client url))]
     ; (println {:req (pr-str req) :out-resp out-resp}) ; debug full request
       (if (-> out-resp :status (= 200))
-        (response "ok")
+        (response "POST to mattermost successful")
         (response (str "Webhook failed with: " out-resp))))
     (response "Please send POST with wekan wenhook: https://github.com/wekan/wekan/wiki/Webhook-data")))
 
 (defn start-http-server [{:keys [port url]}]
   (let [port (Integer. (or (System/getenv "PORT") port))
-        url (or (System/getenv "URL") url (throw (Exception. "specify URL env")))]
+        url (or (System/getenv "URL_mattermost") url (throw (Exception. "Specify mattermost webhook URL env")))]
     (run-server (partial app {:url url}) {:port port :join? false})))
 
 (defn -main [& args]
