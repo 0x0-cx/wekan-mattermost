@@ -10,13 +10,11 @@
 (def mapper (j/object-mapper {:encode-key-fn name :decode-key-fn keyword}))
 
 (defn add-refer-to-card-name
-  "add reference to card name"
   [text card]
   (def reference (subs text (-> (string/last-index-of text "\n") inc)))
   (string/replace-first text card (str "[" card "](" reference ")")))
 
 (defn clear-message
-  "delete reference from message"
   [text]
   (def reference (subs text (-> (string/last-index-of text "\n") inc)))
   (string/replace text (str "\n" reference) ""))
