@@ -23,7 +23,9 @@
   (let [text (get in "text")
         card (get in "card")
         reference (subs text (-> (string/last-index-of text "\n") inc))]
-    {:text (-> text (add-refer-to-card-name card reference) (clear-message reference))}))
+    (if (nil? reference)
+      {:text text}
+      {:text (-> (add-refer-to-card-name text card reference) (clear-message reference))})))
 
 (def client-http-options {:timeout 1000 :headers {"Content-Type" "application/json"}})
 
