@@ -10,21 +10,20 @@
 (def mapper (j/object-mapper {:encode-key-fn name :decode-key-fn keyword}))
 
 (defn add-refer-to-card-name
-  [text card]
-  (def reference (subs text (-> (string/last-index-of text "\n") inc)))
+  [text card reference]
   (string/replace-first text card (str "[" card "](" reference ")")))
 
 (defn clear-message
-  [text]
-  (def reference (subs text (-> (string/last-index-of text "\n") inc)))
+  [text reference]
   (string/replace text (str "\n" reference) ""))
 
 (defn wekan->mattermost
   "creates message"
   [in]
   (let [text (get in "text")
-        card (get in "card")]
-    {:text (-> text (add-refer-to-card-name card) clear-message)}))
+        card (get in "card")
+        reference (subs text (-> (string/last-index-of text "\n") inc))]
+    {:text (-> text (add-refer-to-card-name card reference) (clear-message reference))}))
 
 (def client-http-options {:timeout 1000 :headers {"Content-Type" "application/json"}})
 
