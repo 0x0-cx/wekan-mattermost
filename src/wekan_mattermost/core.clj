@@ -42,7 +42,7 @@
 
 (defn start-http-server [{:keys [port url]}]
   (let [port (Integer. (or (System/getenv "PORT") port))
-        url (or (System/getenv "URL_mattermost") url (throw (Exception. "Specify mattermost webhook URL env")))]
+        url (or (System/getenv "OUT_URL") url (throw (Exception. "Specify out webhook URL in your environment")))]
     (run-server (partial app {:url url}) {:port port :join? false})))
 
 (defn -main [& args]
