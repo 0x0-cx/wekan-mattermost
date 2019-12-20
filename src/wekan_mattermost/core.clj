@@ -7,7 +7,7 @@
   (:gen-class))
 
 ;; TODO
-(def mapper (j/object-mapper {:encode-key-fn name :decode-key-fn keyword}))
+(def mapper (j/object-mapper {:encode-key-fn true :decode-key-fn true}))
 
 (defn add-refer-to-card-name
   [text card reference]
@@ -19,13 +19,11 @@
 
 (defn wekan->mattermost
   "creates message"
-  [in]
-  (let [text (get in "text")
-        card (get in "card")
-        reference (subs text (-> (string/last-index-of text "\n") inc))]
+  [{:keys [text card]}]
+  (let [reference (subs text (-> (string/last-index-of text "\n") inc))]
     (if (nil? reference)
       {:text text}
-      {:text (-> (add-refer-to-card-name text card reference) (clear-message reference))})))
+      {:text (-> text (add-refer-to-card-name card reference) (clear-message reference))})))
 
 (def client-http-options {:timeout 1000 :headers {"Content-Type" "application/json"}})
 
@@ -35,7 +33,7 @@
 
 (defn app [{:keys [url]} req]
   (if (-> req :request-method (= :post))
-    (let [out-resp (-> req :body j/read-value wekan->mattermost (http-client url))]
+    (let [out-resp (-> req :body (j/read-value mapper) wekan->mattermost (http-client url))]
     ; (println {:req (pr-str req) :out-resp out-resp}) ; debug full request
       (if (-> out-resp :status (= 200))
         (response "POST to mattermost successful")
