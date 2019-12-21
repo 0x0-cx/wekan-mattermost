@@ -24,7 +24,7 @@
         reference (re-find regexp text)]
     (if (nil? card)
       ; TODO create function to process all webhooks https://github.com/wekan/wekan/wiki/Webhook-data if we dont't receive "card"
-      {:text text} 
+      {:text text}
       (if (nil? reference)
         {:text text}
         {:text (-> text (add-refer-to-card-name card reference) (clear-message reference))}))))

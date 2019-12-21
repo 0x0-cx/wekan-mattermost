@@ -23,4 +23,5 @@
         :override-deps {rewrite-clj {:mvn/version "0.6.1"}
                         org.clojure/tools.namespace {:mvn/version "0.3.0-alpha4"}}}
   :uberjar {:extra-deps {luchiniatwork/cambada {:mvn/version "1.0.2"}}
-            :main-opts ["-m" "cambada.uberjar" "-m" "wekan_mattermost.core"]}}}
+            :main-opts ["-m" "cambada.uberjar" "-m" "wekan_mattermost.core"]}
+  :test {:extra-paths ["test"]}}}
