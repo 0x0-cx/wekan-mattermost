@@ -19,11 +19,15 @@
 
 (defn wekan->mattermost
   "creates message"
-  [{:keys [text card]}]
-  (let [reference (subs text (-> (string/last-index-of text "\n") inc))]
-    (if (nil? reference)
-      {:text text}
-      {:text (-> text (add-refer-to-card-name card reference) (clear-message reference))})))
+  [{:keys [text card cardId boardId]}]
+  (let [regexp (re-pattern (str "https?://[\\w]+/b/" boardId "/[\\w]+/" cardId))
+        reference (re-find regexp text)]
+    (if (nil? card)
+      ; TODO create function to process all webhooks https://github.com/wekan/wekan/wiki/Webhook-data if we dont't receive "card"
+      {:text text} 
+      (if (nil? reference)
+        {:text text}
+        {:text (-> text (add-refer-to-card-name card reference) (clear-message reference))}))))
 
 (def client-http-options {:timeout 1000 :headers {"Content-Type" "application/json"}})
 
@@ -38,7 +42,7 @@
       (if (-> out-resp :status (= 200))
         (response "POST to mattermost successful")
         (response (str "Webhook failed with: " out-resp))))
-    (response "Please send POST with wekan wenhook: https://github.com/wekan/wekan/wiki/Webhook-data")))
+    (response "Please send POST with wekan wenhook: https://github.com/wekan/wekan/wiki/Webhook-data \n")))
 
 (defn start-http-server [{:keys [port url]}]
   (let [port (Integer. (or (System/getenv "PORT") port))
