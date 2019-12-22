@@ -15,19 +15,32 @@
 
 (defn clear-message
   [text reference]
-  (string/replace text (str "\n" reference) ""))
+  (if (nil? reference)
+    (if (nil? (string/index-of text "http"))
+      {:text text}
+      (let [url-pos (string/index-of text "http")
+            url (subs text url-pos)]
+        (-> text (string/replace url "") string/trim-newline)))
+    (string/replace text (str "\n" reference) "")))
 
 (defn wekan->mattermost
   "creates message"
   [{:keys [text card cardId boardId]}]
   (let [regexp (re-pattern (str "https?://[\\w]+/b/" boardId "/[\\w]+/" cardId))
         reference (re-find regexp text)]
+    ; TODO change to more simple structure if it real
     (if (nil? card)
-      ; TODO create function to process all webhooks https://github.com/wekan/wekan/wiki/Webhook-data if we dont't receive "card"
-      {:text text}
-      (if (nil? reference)
+      ; if we don't receive card then we clear reference without adding it to text
+      (if (nil? (string/index-of text "http"))
         {:text text}
-        {:text (-> text (add-refer-to-card-name card reference) (clear-message reference))}))))
+        {:text (clear-message text nil)})
+      (if (nil? reference)
+        (if (nil? (string/index-of text "http"))
+          {:text text}
+          {:text (clear-message text nil)})
+        {:text (-> text (add-refer-to-card-name card reference) (clear-message reference))})))) 
+
+
 
 (def client-http-options {:timeout 1000 :headers {"Content-Type" "application/json"}})
 
