@@ -1,4 +1,4 @@
-(ns wekan-mattermost.core_test
+(ns wekan-mattermost.core-test
   (:require [wekan-mattermost.core :as core]
             [clojure.test :refer [deftest is]]))
 

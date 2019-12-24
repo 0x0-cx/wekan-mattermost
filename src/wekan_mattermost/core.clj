@@ -14,33 +14,27 @@
   (string/replace-first text card (str "[" card "](" reference ")")))
 
 (defn clear-message
-  [text reference]
-  (if (nil? reference)
-    (if (nil? (string/index-of text "http"))
-      {:text text}
-      (let [url-pos (string/index-of text "http")
-            url (subs text url-pos)]
-        (-> text (string/replace url "") string/trim-newline)))
-    (string/replace text (str "\n" reference) "")))
+  [text reference]  
+  (string/replace text (str "\n" reference) ""))
+
+(defn clear-wrong-url
+  [text url-pos]
+  (if url-pos
+    (let [url (subs text url-pos)]
+      (-> text (string/replace-first url "") string/trim-newline))
+    (string/trim-newline text)))
 
 (defn wekan->mattermost
   "creates message"
   [{:keys [text card cardId boardId]}]
   (let [regexp (re-pattern (str "https?://[\\w]+/b/" boardId "/[\\w]+/" cardId))
-        reference (re-find regexp text)]
-    ; TODO change to more simple structure if it real
-    (if (nil? card)
-      ; if we don't receive card then we clear reference without adding it to text
-      (if (nil? (string/index-of text "http"))
-        {:text text}
-        {:text (clear-message text nil)})
-      (if (nil? reference)
-        (if (nil? (string/index-of text "http"))
-          {:text text}
-          {:text (clear-message text nil)})
-        {:text (-> text (add-refer-to-card-name card reference) (clear-message reference))})))) 
-
-
+        regexp-reference (re-find regexp text)
+        url-pos (string/index-of text "http")]
+    (if card
+      (if regexp-reference
+        {:text (-> text (add-refer-to-card-name card regexp-reference) (clear-message regexp-reference))}
+        {:text (clear-wrong-url text url-pos)})
+      {:text (clear-wrong-url text url-pos)}))) 
 
 (def client-http-options {:timeout 1000 :headers {"Content-Type" "application/json"}})
 
