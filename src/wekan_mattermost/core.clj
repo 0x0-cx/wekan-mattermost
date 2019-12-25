@@ -17,24 +17,14 @@
   [text reference]  
   (string/replace text (str "\n" reference) ""))
 
-(defn clear-wrong-url
-  [text url-pos]
-  (if url-pos
-    (let [url (subs text url-pos)]
-      (-> text (string/replace-first url "") string/trim-newline))
-    (string/trim-newline text)))
-
 (defn wekan->mattermost
   "creates message"
   [{:keys [text card cardId boardId]}]
-  (let [regexp (re-pattern (str "https?://[\\w]+/b/" boardId "/[\\w]+/" cardId))
-        regexp-reference (re-find regexp text)
-        url-pos (string/index-of text "http")]
-    (if card
-      (if regexp-reference
-        {:text (-> text (add-refer-to-card-name card regexp-reference) (clear-message regexp-reference))}
-        {:text (clear-wrong-url text url-pos)})
-      {:text (clear-wrong-url text url-pos)}))) 
+  (let [regexp (re-pattern (str "https?://[\\w\\W]+/b/" boardId "/[\\w\\W]+/" cardId))
+        regexp-reference (re-find regexp text)]
+    (if regexp-reference
+      {:text (-> text (add-refer-to-card-name card regexp-reference) (clear-message regexp-reference))}
+      {:text text}))) 
 
 (def client-http-options {:timeout 1000 :headers {"Content-Type" "application/json"}})
 
