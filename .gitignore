@@ -1,1 +1,7 @@
 target
+.cpcache
+.git
+.rebel_readline_history
+.classpath
+.project
+.settings
