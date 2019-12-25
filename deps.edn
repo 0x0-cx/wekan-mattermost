@@ -22,6 +22,8 @@
         :main-opts  ["-m" "rebel-readline.main"]
         :override-deps {rewrite-clj {:mvn/version "0.6.1"}
                         org.clojure/tools.namespace {:mvn/version "0.3.0-alpha4"}}}
+  :ci {:main-opts ["-e" "(require,'[eftest.runner,:refer,[find-tests,run-tests]]),(run-tests,(find-tests,\"test\"))"]}
   :uberjar {:extra-deps {luchiniatwork/cambada {:mvn/version "1.0.2"}}
             :main-opts ["-m" "cambada.uberjar" "-m" "wekan_mattermost.core"]}
-  :test {:extra-paths ["test"]}}}
+  :test {:extra-paths ["test"]
+         :extra-deps {eftest {:mvn/version "0.5.7"}}}}}
