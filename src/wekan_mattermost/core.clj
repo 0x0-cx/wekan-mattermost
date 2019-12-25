@@ -17,14 +17,18 @@
   [text reference]  
   (string/replace text (str "\n" reference) ""))
 
+(defn clear-user-in-text
+  [text user]
+  (-> text (string/replace user "") string/trim))
+
 (defn wekan->mattermost
   "creates message"
-  [{:keys [text card cardId boardId]}]
+  [{:keys [text card cardId boardId user]}]
   (let [regexp (re-pattern (str "https?://[\\w\\W]+/b/" boardId "/[\\w\\W]+/" cardId))
         regexp-reference (re-find regexp text)]
     (if regexp-reference
-      {:text (-> text (add-refer-to-card-name card regexp-reference) (clear-message regexp-reference))}
-      {:text text}))) 
+      {:text (-> text (clear-user-in-text user) (add-refer-to-card-name card regexp-reference) (clear-message regexp-reference)) :username user}
+      {:text (clear-user-in-text text user) :username user}))) 
 
 (def client-http-options {:timeout 1000 :headers {"Content-Type" "application/json"}})
 
