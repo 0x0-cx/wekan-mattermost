@@ -21,6 +21,8 @@
   [text user]
   (-> text (string/replace user "") string/trim))
 
+(def ignore-description #{"CardSelected" "act-addedLabel"})
+
 (defn wekan->mattermost
   "creates message"
   [{:keys [text card cardId boardId user]}]
@@ -46,10 +48,13 @@
 
 (defn app [{:keys [url]} req]
   (if (-> req :request-method (= :post))
-    (let [out-resp (-> req :body (j/read-value mapper) dbg wekan->mattermost (http-client url) dbg)]
-      (if (-> out-resp :status (= 200))
-        (response "POST to mattermost successful")
-        (response (str "Webhook failed with: " out-resp))))
+    (let [{:keys [description] :as event} (-> req :body (j/read-value mapper) dbg)]
+      (if-not (ignore-description description)
+       (let [out-resp (-> event wekan->mattermost (http-client url) dbg)]
+         (if (-> out-resp :status (= 200))
+           (response "POST to mattermost successful")
+           (response (str "Webhook failed with: " out-resp))))
+       (response "POST ignored due event type")))
     (response "Please send POST with wekan wenhook: https://github.com/wekan/wekan/wiki/Webhook-data \n")))
 
 (defn start-http-server [{:keys [port url]}]
