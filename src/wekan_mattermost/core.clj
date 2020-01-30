@@ -36,10 +36,17 @@
   @(http/post url (assoc client-http-options
                          :body (j/write-value-as-string out-body))))
 
+(defmacro dbg [x]
+  `(if (System/getenv "DEBUG")
+     (let [x# ~x]
+       (do
+         (println '~x "->" (pr-str x#))
+         x#))
+     ~x))
+
 (defn app [{:keys [url]} req]
   (if (-> req :request-method (= :post))
-    (let [out-resp (-> req :body (j/read-value mapper) wekan->mattermost (http-client url))]
-    ; (println {:req (pr-str req) :out-resp out-resp}) ; debug full request
+    (let [out-resp (-> req :body (j/read-value mapper) dbg wekan->mattermost (http-client url) dbg)]
       (if (-> out-resp :status (= 200))
         (response "POST to mattermost successful")
         (response (str "Webhook failed with: " out-resp))))
